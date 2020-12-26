@@ -41,26 +41,24 @@ SKIP: {
 {
     local $ENV{PERL_DESTRUCT_LEVEL} = 2;
     fresh_perl_is(
-		  'package A::B; sub a { // }; %A::=""',
+		  'no warnings q|misc|; package A::B; sub a { // }; %A::=""',
 		  '',
 		  {},
-		  );
+		  q|Unbalanced string table refcount|,
+      );
     # Variant of the above which creates an object that persists until global
     # destruction, and triggers an assertion failure prior to change
     # a420522db95b7762
     fresh_perl_is(
-		  'use Exporter; package A; sub a { // }; delete $::{$_} for keys %::',
+		  'no warnings q|syntax|; use Exporter; package A; sub a { // }; delete $::{$_} for keys %::',
 		  '',
 		  {},
+          q|assertion failure prior to change|,
 		  );
 }
 
-# now tests with strictures
-
-{
-    use strict;
-    ok( !exists $pig::{bodine}, q(referencing a non-existent stash element doesn't produce stricture errors) );
-}
+ok( !exists $pig::{bodine},
+  q(referencing a non-existent stash element doesn't produce stricture errors) );
 
 our $TODO;
 SKIP: {
@@ -105,19 +103,19 @@ SKIP: {
     is( eval { $gv->NAME }, "__ANON__", "...and an __ANON__ name");
     is( eval { $gv->STASH->NAME }, "__ANON__", "...and an __ANON__ stash");
 
-    my $sub = do {
+    $sub = do {
 	package four;
 	sub { 1 };
     };
     %four:: = ();
 
-    my $gv = B::svref_2object($sub)->GV;
+    $gv = B::svref_2object($sub)->GV;
     ok($gv->isa(q/B::GV/), "cleared stash leaves anon CV with valid GV");
 
     my $st = eval { $gv->STASH->NAME };
     is($st, q/four/, "...but leaves the stash intact");
 
-    my $sub = do {
+    $sub = do {
 	package five;
 	sub { 1 };
     };
@@ -131,7 +129,7 @@ SKIP: {
 	is($st, q/__ANON__/, "...and an __ANON__ stash");
     }
 
-    my $sub = do {
+    $sub = do {
 	package six;
 	\&{"six"}
     };
@@ -165,7 +163,7 @@ SKIP: {
 	    package FOO2;
 	    sub f{};
 	    $r = \&f;
-	    *f = sub {};
+        { no warnings 'redefine'; *f = sub {}; }
 	];
 	delete $FOO2::{f};
 	my $cv = B::svref_2object($r);
@@ -253,11 +251,12 @@ fresh_perl_is(
     use Config;
 
     my $obj  = bless [];
-    my $globref = \*tat;
+    my $globref;
+    { no warnings 'once'; $globref = \*tat; }
 
     # effectively rename a stash
     *slin:: = *rile::; *rile:: = *zor::;
-    
+
     ::is *$globref, "*rile::tat",
      'globs stringify the same way when stashes are moved';
     ::is ref $obj, "rile",
@@ -284,7 +283,8 @@ fresh_perl_is(
 
 # Setting the name during undef %stash:: should have no effect.
 {
-    my $glob = \*Phoo::glob;
+    my $glob;
+    { no warnings 'once'; $glob = \*Phoo::glob; }
     sub o::DESTROY { eval '++$Phoo::bar' }
     no strict 'refs';
     ${"Phoo::thing1"} = bless [], "o";

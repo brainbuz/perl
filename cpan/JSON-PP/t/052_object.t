@@ -1,9 +1,12 @@
 # copied over from JSON::XS and modified to use JSON::PP
-
+package JSON::PP::freeze;
+1;
+package JSON::PP::tojson;
+1;
+package main;
 use strict;
 use Test::More;
 BEGIN { plan tests => 20 };
-BEGIN { $^W = 0 } # hate
 
 BEGIN { $ENV{PERL_JSON_BACKEND} = 0; }
 
@@ -15,6 +18,7 @@ ok (1);
 
 sub JSON::PP::tojson::TO_JSON {
    ok (@_ == 1);
+   no warnings 'bareword';
    ok (JSON::PP::tojson:: eq ref $_[0]);
    ok ($_[0]{k} == 1);
    7
@@ -32,6 +36,7 @@ ok (1);
 sub JSON::PP::freeze::FREEZE {
    ok (@_ == 2);
    ok ($_[1] eq "JSON");
+   no warnings 'bareword';
    ok (JSON::PP::freeze:: eq ref $_[0]);
    ok ($_[0]{k} == 1);
    (3, 1, 2)
@@ -47,8 +52,8 @@ sub JSON::PP::freeze::THAW {
    777
 }
 
-my $obj = bless { k => 1 }, JSON::PP::freeze::;
-my $enc = $json->encode ($obj);
+$obj = bless { k => 1 }, JSON::PP::freeze::;
+$enc = $json->encode ($obj);
 ok ($enc eq '("JSON::PP::freeze")[3,1,2]');
 
 my $dec = $json->decode ($enc);

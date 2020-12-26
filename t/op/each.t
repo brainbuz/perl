@@ -8,7 +8,7 @@ BEGIN {
 
 plan tests => 59;
 
-my %h; 
+my %h;
 $h{'abc'} = 'ABC';
 $h{'def'} = 'DEF';
 $h{'jkl','mno'} = "JKL\034MNO";
@@ -122,7 +122,7 @@ SKIP: {
     is (keys(%hash), 10, "keys (%hash)");
 }
 
-my @tests = (&next_test, &next_test, &next_test);
+@main::tests = (&next_test, &next_test, &next_test);
 {
     package Obj;
     sub DESTROY { print "ok $::tests[1] # DESTROY called\n"; }
@@ -150,7 +150,7 @@ ok (eq_hash(\%u, \%u2), "copied unicode hash keys correctly?");
 my $A;
 my $a = "\xe3\x81\x82"; $A = "\x{3042}";
 my %b = ( $a => "non-utf8");
-my %u = ( $A => "utf8");
+%u = ( $A => "utf8");
 
 is (exists $b{$A}, '', "utf8 key in bytes hash");
 is (exists $u{$a}, '', "bytes key in utf8 hash");
@@ -167,7 +167,7 @@ my $ol;
 cmp_ok ($ol, '>', 3, "check encoding on EBCDIC");
 %u = ($d => "downgrade");
 for (keys %u) {
-    is (length, 3, "check length"); 
+    is (length, 3, "check length");
     is ($_, pack("U*", 0xe3, 0x81, 0xAF), "check value");
 }
 {
@@ -182,11 +182,11 @@ for (keys %u) {
     my $b1 = "\xC4\x80";          # 0xC4 0x80 is U+0100 in UTF-8
 
     $u{$u0} = 1;
-    $u{$b0} = 2; 
+    $u{$b0} = 2;
     $u{$u1} = 3;
     $u{$b1} = 4;
 
-    is(scalar keys %u, 4, "four different Unicode keys"); 
+    is(scalar keys %u, 4, "four different Unicode keys");
     is($u{$u0}, 1, "U+00FF        -> 1");
     is($u{$b0}, 2, "U+00C3 U+00BF -> 2");
     is($u{$u1}, 3, "U+0100        -> 3 ");
@@ -217,7 +217,7 @@ for my $k (qw(each keys values)) {
     is($hsv,$count,"Got the count of keys from %foo in scalar assignment context - my");
     my @arr=%foo&&%foo;
     is(@arr,10,"Got expected number of elements in list context - my");
-}    
+}
 {
     our %foo=(1..10);
     my ($k,$v);
@@ -236,7 +236,7 @@ for my $k (qw(each keys values)) {
     is($hsv,$count,"Got the count of keys from %foo in scalar assignment context - our");
     my @arr=%foo&&%foo;
     is(@arr,10,"Got expected number of elements in list context - our");
-}    
+}
 {
     # make sure a deleted active iterator gets freed timely, even if the
     # hash is otherwise empty

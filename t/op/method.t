@@ -10,7 +10,6 @@ BEGIN {
     set_up_inc( qw(. ../lib lib ../dist/base/lib) );
 }
 
-use strict;
 no warnings 'once';
 
 plan(tests => 162);
@@ -717,7 +716,7 @@ SKIP: {
 
 # RT#130496: assertion failure when looking for a method of undefined name
 # on an unblessed reference
-fresh_perl_is('my $x; eval { {}->$x }; print $@;',
+fresh_perl_is('no warnings q|uninitialized|; my $x; eval { {}->$x }; print $@;',
               "Can't call method \"\" on unblessed reference at - line 1.",
               {},
               "no crash with undef method name on unblessed ref");
